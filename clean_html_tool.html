@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>Clean HTML Herramienta</title>
+
+</head>
+<body>
+    <div class="container">
+        <h1>Clean HTML Herramienta</h1>
+        <div class="textarea-wrapper">
+            <textarea id="inputHtml" placeholder="Pega tu código HTML desordenado aquí..."></textarea>
+        </div>
+        <button onclick="cleanHtml()">Limpiar HTML</button>
+        <div class="textarea-wrapper">
+            <textarea id="outputHtml" placeholder="Aquí se mostrará el código HTML limpio..." readonly></textarea>
+        </div>
+    </div>
+
+    <script>
+        function formatHtml(xml, indent = '  ') {
+            let formatted = '';
+            let pad = 0;
+            
+
+            xml.replace(/<html.*?>.*?<body>/s, '').replace(/<\/body>.*?<\/html>/s, '').replace(/<\/?([^(<\/)]+)/g, '$&\r\n').split('\r\n').forEach((node) => {
+                let indentLevel = 0;
+                const isClosing = node.match(/<\/.+>/);
+                if (!isClosing) {
+                    indentLevel = ++pad;
+                }
+                if (node.match(/<\//)) {
+                    pad--;
+                }
+                
+                formatted += indent.repeat(Math.max(pad - indentLevel, 0)) + node + '\r\n';
+                if (isClosing) {
+                    indentLevel = --pad;
+                }
+            });
+
+            return formatted.trim();
+        }
+
+        function cleanHtml() {
+    const inputHtml = document.getElementById('inputHtml');
+    const outputHtml = document.getElementById('outputHtml');
+    const parser = new DOMParser();
+    const parsedDocument = parser.parseFromString(inputHtml.value, 'text/html');
+
+    // Eliminar etiquetas <p> vacías y espacios en blanco innecesarios en el texto
+    const paragraphs = parsedDocument.getElementsByTagName('p');
+    for (let i = paragraphs.length - 1; i >= 0; i--) {
+        const innerText = paragraphs[i].innerText.trim();
+        if (innerText === '') {
+            paragraphs[i].parentNode.removeChild(paragraphs[i]);
+        } else {
+            paragraphs[i].innerText = innerText.replace(/\s+/g, ' ');
+        }
+    }
+
+                const serializer = new XMLSerializer();
+                let cleanCode = serializer.serializeToString(parsedDocument);
+
+              // Corregir problema de etiquetas doblemente anidadas
+              cleanCode = cleanCode.replace(/<!DOCTYPE html>.*<html>.*<head>.*<\/head>.*<body>/s, '');
+              cleanCode = cleanCode.replace(/<\/body>.*<\/html>/s, '');
+
+             // Formatear el HTML con sangrías
+             const formattedHtml = formatHtml(cleanCode);
+
+              outputHtml.value = formattedHtml;
+
+            // Eliminar etiquetas <p> que contienen solo un espacio
+            const spaceParagraphs = parsedDocument.querySelectorAll('p:empty:not(:empty + *)');
+            spaceParagraphs.forEach((p) => p.remove());
+
+
+                      window.onload = cleanHtml;
+
+
+        }
+
+
+    </script>
+
+
+
+</body>
+
+
+<footer>
+    <p>Developed by FxxMorgan in <script>document.write(new Date().getFullYear());</script>, ¡Check out my <a href="https://github.com/FxxMorgan">GitHub</a>!</p>
+</footer>
+
+
+</html>
